@@ -7,6 +7,7 @@ import sys
 # * Uses pre-calculated Jacobians for system of equations based on SE(3) Lie algebra
 # * Uses M-estimator based on Truncated Least Squares to deal with outlier
 class LOAMSolver:
+
     def __init__(self, use_estimators=False, region_rate=0.7):
         self.alpha = 1
         self.max_iter = 1e5
@@ -40,11 +41,13 @@ class LOAMSolver:
         if self.use_estimators:
             for corresp in edge_corresp:
                 r, _ = self.r(corresp, T, corresp_type='edge')
-                self.resid_sigmas_edge.append(self.initial_sigma_scale * self.e(r))
+                self.resid_sigmas_edge.append(self.initial_sigma_scale *
+                                              self.e(r))
 
             for corresp in plane_corresp:
                 r, _ = self.r(corresp, T, corresp_type='plane')
-                self.resid_sigmas_planes.append(self.initial_sigma_scale * self.e(r))
+                self.resid_sigmas_planes.append(self.initial_sigma_scale *
+                                                self.e(r))
 
         prev_rel_inlier_err = 100
         rel_inlier_err = 0
@@ -52,9 +55,11 @@ class LOAMSolver:
         prev_inliers_plane = []
         prev_inliers_edge = []
 
-        while iter_cnt < self.max_iter and abs(prev_rel_inlier_err - rel_inlier_err) > self.error_region:
+        while iter_cnt < self.max_iter and abs(
+                prev_rel_inlier_err - rel_inlier_err) > self.error_region:
             prev_rel_inlier_err = rel_inlier_err
-            jac, hess, edge_inliers, plane_inliers = self.derivatives(edge_corresp, plane_corresp, T)
+            jac, hess, edge_inliers, plane_inliers = self.derivatives(
+                edge_corresp, plane_corresp, T)
             inliers_edge_perc.append(len(edge_inliers) / len(edge_corresp))
             inliers_plane_perc.append(len(plane_inliers) / len(plane_corresp))
 
@@ -67,29 +72,42 @@ class LOAMSolver:
             prev_inliers_plane = plane_inliers
             errors.append(self.cost_function(edge_corresp, plane_corresp, T))
 
-            edge_outliers = [x for x in range(len(edge_corresp)) if x not in edge_inliers]
-            plane_outliers = [x for x in range(len(plane_corresp)) if x not in plane_inliers]
-            outlier_errors.append(self.cost_function_by_ind(edge_corresp, plane_corresp, T,
-                                                            edge_outliers, plane_outliers))
+            edge_outliers = [
+                x for x in range(len(edge_corresp)) if x not in edge_inliers
+            ]
+            plane_outliers = [
+                x for x in range(len(plane_corresp)) if x not in plane_inliers
+            ]
+            outlier_errors.append(
+                self.cost_function_by_ind(edge_corresp, plane_corresp, T,
+                                          edge_outliers, plane_outliers))
 
-            inlier_errors.append(self.cost_function_by_ind(edge_corresp, plane_corresp, T,
-                                                           edge_inliers, plane_inliers))
+            inlier_errors.append(
+                self.cost_function_by_ind(edge_corresp, plane_corresp, T,
+                                          edge_inliers, plane_inliers))
 
-            inlier_edge_errors.append(self.cost_function_by_ind(edge_corresp, plane_corresp, T,
-                                                                edge_inliers, []))
+            inlier_edge_errors.append(
+                self.cost_function_by_ind(edge_corresp, plane_corresp, T,
+                                          edge_inliers, []))
 
-            inlier_plane_errors.append(self.cost_function_by_ind(edge_corresp, plane_corresp, T,
-                                                                 [], plane_inliers))
+            inlier_plane_errors.append(
+                self.cost_function_by_ind(edge_corresp, plane_corresp, T, [],
+                                          plane_inliers))
 
-            rel_inlier_err = inlier_errors[-1] / (len(edge_inliers) + len(plane_inliers))
+            rel_inlier_err = inlier_errors[-1] / (len(edge_inliers) +
+                                                  len(plane_inliers))
 
             iter_cnt += 1
 
             if self.use_estimators:
-                self.resid_sigmas_edge = [self.sigma_coef * x if x > self.error_region else x for x
-                                          in self.resid_sigmas_edge]
-                self.resid_sigmas_planes = [self.sigma_coef * x if x > self.error_region else x for x
-                                            in self.resid_sigmas_planes]
+                self.resid_sigmas_edge = [
+                    self.sigma_coef * x if x > self.error_region else x
+                    for x in self.resid_sigmas_edge
+                ]
+                self.resid_sigmas_planes = [
+                    self.sigma_coef * x if x > self.error_region else x
+                    for x in self.resid_sigmas_planes
+                ]
 
         return T, inlier_errors, prev_inliers_edge, prev_inliers_plane
 
@@ -105,8 +123,10 @@ class LOAMSolver:
             b = corresp[2]
             p = T.transform_array(corresp[0].reshape(1, 3)).reshape(3)
 
-            r = self._skew(a - b) @ (a - p).reshape(3, 1) / np.linalg.norm(a - b)
-            small_jac = self._skew(a - b) @ np.hstack((self._skew(p), -np.eye(3))) / np.linalg.norm(a - b)
+            r = self._skew(a - b) @ (a - p).reshape(3,
+                                                    1) / np.linalg.norm(a - b)
+            small_jac = self._skew(a - b) @ np.hstack(
+                (self._skew(p), -np.eye(3))) / np.linalg.norm(a - b)
             return r, small_jac
         elif corresp_type == 'plane':
             a = corresp[1]
@@ -117,7 +137,8 @@ class LOAMSolver:
             cross_prod = self._skew(a - b) @ (a - c).reshape(3, 1)
             n = cross_prod / np.linalg.norm(cross_prod)
             r = n.reshape(1, 3) @ (a - p).reshape(3, 1)
-            small_jac = n.reshape(1, 3) @ np.hstack((self._skew(p), -np.eye(3)))
+            small_jac = n.reshape(1, 3) @ np.hstack(
+                (self._skew(p), -np.eye(3)))
             return r, small_jac
         else:
             raise NotSupportedType()
@@ -138,7 +159,8 @@ class LOAMSolver:
 
         return err
 
-    def cost_function_by_ind(self, edge_corresp, plane_corresp, T, edge_ind, plane_ind):
+    def cost_function_by_ind(self, edge_corresp, plane_corresp, T, edge_ind,
+                             plane_ind):
         err = 0
         for i in edge_ind:
             r, _ = self.r(edge_corresp[i], T, corresp_type='edge')
@@ -158,7 +180,8 @@ class LOAMSolver:
         for ind, corresp in enumerate(edge_corresp):
             r, jac_i = self.r(corresp, T, corresp_type='edge')
             if not self.use_estimators or (
-                    self.use_estimators and self.m_estimator_condition(r, self.resid_sigmas_edge[ind])):
+                    self.use_estimators and self.m_estimator_condition(
+                        r, self.resid_sigmas_edge[ind])):
                 jac += r.T @ jac_i
                 hess += jac_i.T @ jac_i
                 edge_inliers.append(ind)
@@ -167,7 +190,8 @@ class LOAMSolver:
         for ind, corresp in enumerate(plane_corresp):
             r, jac_i = self.r(corresp, T, corresp_type='plane')
             if not self.use_estimators or (
-                    self.use_estimators and self.m_estimator_condition(r, self.resid_sigmas_planes[ind])):
+                    self.use_estimators and self.m_estimator_condition(
+                        r, self.resid_sigmas_planes[ind])):
                 jac += r.T @ jac_i
                 hess += jac_i.T @ jac_i
                 plane_inliers.append(ind)
@@ -175,6 +199,4 @@ class LOAMSolver:
         return jac, hess, edge_inliers, plane_inliers
 
     def _skew(self, x):
-        return np.array([[0, -x[2], x[1]],
-                         [x[2], 0, -x[0]],
-                         [-x[1], x[0], 0]])
+        return np.array([[0, -x[2], x[1]], [x[2], 0, -x[0]], [-x[1], x[0], 0]])

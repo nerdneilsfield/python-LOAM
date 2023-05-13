@@ -5,9 +5,11 @@ from loader import Loader
 
 
 class LoaderKITTI(Loader):
+
     def __init__(self, dataset_path, sequence):
         self.N_SCANS = 64
-        self.folder_path = os.path.join(dataset_path, 'dataset', 'sequences', sequence, 'velodyne')
+        self.folder_path = os.path.join(dataset_path, 'dataset', 'sequences',
+                                        sequence, 'velodyne')
         self.pcds_list = os.listdir(self.folder_path)
         self.pcds_list.sort()
 

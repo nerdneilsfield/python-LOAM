@@ -2,6 +2,7 @@ import numpy as np
 
 
 class Loader:
+
     def length(self):
         pass
 

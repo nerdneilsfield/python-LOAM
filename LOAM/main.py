@@ -11,11 +11,16 @@ from odometry_estimator import OdometryEstimator
 def find_transformation(source, target, trans_init):
     threshold = 0.2
     if not source.has_normals():
-        source.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.5, max_nn=50))
+        source.estimate_normals(
+            search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.5,
+                                                              max_nn=50))
     if not target.has_normals():
-        target.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.5, max_nn=50))
-    transformation = o3d.registration.registration_icp(source, target, threshold, trans_init,
-                                                       o3d.registration.TransformationEstimationPointToPlane()).transformation
+        target.estimate_normals(
+            search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.5,
+                                                              max_nn=50))
+    transformation = o3d.registration.registration_icp(
+        source, target, threshold, trans_init,
+        o3d.registration.TransformationEstimationPointToPlane()).transformation
     return transformation
 
 
@@ -38,7 +43,11 @@ if __name__ == '__main__':
         if i >= 50:
             pcd = loader.get_item(i)
             T, sharp_points, flat_points = odometry.append_pcd(pcd)
-            mapper.append_undistorted(pcd[0], T, sharp_points, flat_points, vis=(i % 1 == 0))
+            mapper.append_undistorted(pcd[0],
+                                      T,
+                                      sharp_points,
+                                      flat_points,
+                                      vis=(i % 1 == 0))
 
     # Visual comparison with point-to-plane ICP
     pcds = []

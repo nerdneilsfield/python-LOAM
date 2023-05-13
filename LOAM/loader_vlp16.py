@@ -6,6 +6,7 @@ from loader import Loader
 
 
 class LoaderVLP16(Loader):
+
     def __init__(self, folder_path):
         self.N_SCANS = 16
         self.folder_path = folder_path
@@ -21,7 +22,9 @@ class LoaderVLP16(Loader):
         return self.reorder_pcd(pcd)
 
     def _get_scan_ids(self, pcd):
-        angles_rad = np.arctan(np.divide(pcd[:, 2], np.sqrt(pcd[:, 0] * pcd[:, 0] + pcd[:, 1] * pcd[:, 1])))
+        angles_rad = np.arctan(
+            np.divide(pcd[:, 2],
+                      np.sqrt(pcd[:, 0] * pcd[:, 0] + pcd[:, 1] * pcd[:, 1])))
         angles_deg = angles_rad * 180 / math.pi
         scan_ids = ((angles_deg + self.N_SCANS - 1) / 2 + 0.5).astype(int)
 
